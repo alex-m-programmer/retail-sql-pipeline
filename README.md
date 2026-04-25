@@ -2,13 +2,21 @@
 An end-to-end data engineering project that ingests raw retail data into Google BigQuery, cleans and transforms it using SQL (Medallion Architecture), and visualizes business insights in Looker Studio. The entire ingestion process is containerized for reproducibility.
 
 **🔗 [View Live Dashboard](https://datastudio.google.com/reporting/3e8d49f3-f41c-4d35-9f05-7ac5242acd78)**
-![Dashboard Preview](retail-analytics.PNG)
+![Dashboard Preview](assets/retail-analytics.PNG)
 
 ## 🏗️ Architecture
 The pipeline follows the **Medallion Architecture** to ensure data quality and separation of concerns:
 1.  **Bronze (Raw):** Initial data ingestion from CSV to BigQuery via Python.
 2.  **Silver (Cleaned):** Data cleaning (removing nulls, filtering invalid quantities/prices) using SQL.
 3.  **Gold (Insights):** Aggregated business metrics (Revenue by Country, Average Spend per Customer) for BI.
+
+## 📕 Dataset Information
+The project utilizes the **Online Retail Dataset** from the UCI Machine Learning Repository.
+
+- **[Source]**(https://www.kaggle.com/datasets/sowndarya23/online-retail-dataset)
+- **Size:** ~541,000 transactions.
+- **Attributes:** InvoiceNo, StockCode, Description, Quantity, InvoiceDate, UnitPrice, CustomerID, Country.
+- **Context:** This is a transnational dataset which contains all the transactions occurring between 01/12/2010 and 09/12/2011 for a UK-based and registered non-store online retail.
 
 ## 🛠️ Tech Stack
 - **Cloud: Google BigQuery
