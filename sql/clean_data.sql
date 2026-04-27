@@ -1,6 +1,6 @@
-CREATE OR REPLACE TABLE `retail-analytics-494014.silver.online_retail_cleaned` 
+CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_SILVER}.{TABLE_CLEANED}` 
 PARTITION BY DATE(InvoiceDate)
 CLUSTER BY Country AS
 SELECT *
-FROM retail-analytics-494014.bronze.online_retail_raw
+FROM `{PROJECT_ID}.{DATASET_BRONZE}.{TABLE_RAW}`
 WHERE CustomerID IS NOT NULL AND Quantity > 0 AND UnitPrice > 0;

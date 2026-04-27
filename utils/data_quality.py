@@ -1,28 +1,37 @@
 import os
+from dotenv import load_dotenv
 from google.cloud import bigquery
 from utils.logger_config import get_logger
 
+load_dotenv()
+
 def run_data_checks():  
   logger = get_logger("data_quality")
-  os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
   client = bigquery.Client()
+    
   with open("sql/data_check.sql", "r") as f:
-    data_check = f.read()
-  
+    template = f.read()
+    
   try:
     logger.info("Running data quality checks on Gold table...")
-    query_job = client.query(data_check)
+    formatted_sql = template.format(
+      PROJECT_ID = os.getenv("PROJECT_ID"),
+      DATASET_GOLD = os.getenv("DATASET_GOLD"),
+      TABLE_PERFORMANCE = os.getenv("TABLE_PERFORMANCE")
+    )
+
+    query_job = client.query(formatted_sql)
     results = query_job.result()
 
-    issue_count = 0
-    for row in results:
-      issue_count = row.issue_count
+    row = list(results)[0]
+    issue_count = row.issue_count
+    issue_types = row.issue_types
 
     if issue_count > 0:
-      logger.critical(f"DATA BREACH! Found {issue_count} invalid rows. Stopping pipeline.")
-      raise ValueError("Data quality check failed.")
-    else:
-      logger.info("Data quality checks passed! (0 issues found)")
+      logger.critical(f"QUALITY GATE FAILED! Issues: {issue_types}")
+      raise ValueError(f"Data quality check failed: {issue_types}")
+        
+    logger.info("Data quality checks passed! (0 issues found)")
 
   except Exception as e:
     logger.error(f"Quality Check Error: {e}")

@@ -1,49 +1,68 @@
 import os
 import pandas_gbq
 import pandas as pd
+from dotenv import load_dotenv
 from google.cloud import bigquery
 from utils.logger_config import get_logger
 from utils.data_quality import run_data_checks
 
+load_dotenv()
+
 def ingest_data():
+  logger = get_logger("main")
   try:
-
-    logger = get_logger("main")
-
     logger.info("Starting ingestion...")
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
-    client = bigquery.Client()
+        
+    project_id = os.getenv("PROJECT_ID")
+    client = bigquery.Client(project=project_id)
 
     df = pd.read_csv("data/online_retail.csv", encoding="ISO-8859-1")
     df["InvoiceDate"] = pd.to_datetime(df["InvoiceDate"])
-    pandas_gbq.to_gbq(dataframe=df, destination_table="bronze.online_retail_raw", project_id="retail-analytics-494014", if_exists="replace")
-    logger.info(f"Successfully loaded {len(df)} rows.")
+        
+    destination = f"{os.getenv('DATASET_BRONZE')}.{os.getenv('TABLE_RAW')}"
+    pandas_gbq.to_gbq(df, destination, project_id=project_id, if_exists="replace")
+    logger.info(f"Successfully loaded {len(df)} rows to Bronze.")
 
     logger.info("Starting silver layer transformation...")
     with open("sql/clean_data.sql", "r") as f:
-      sql_silver = f.read()
+      sql_silver = f.read().format(
+        PROJECT_ID = os.getenv("PROJECT_ID"),
+        DATASET_SILVER = os.getenv("DATASET_SILVER"),
+        TABLE_CLEANED = os.getenv("TABLE_CLEANED"),
+        DATASET_BRONZE = os.getenv("DATASET_BRONZE"),
+        TABLE_RAW = os.getenv("TABLE_RAW")
+      )
+
     client.query(sql_silver).result()
     logger.info("Silver table created successfully.")
 
-    bronze_count = client.query("SELECT COUNT(*) FROM `retail-analytics-494014.bronze.online_retail_raw`").result().to_dataframe().iloc[0,0]
-    silver_count = client.query("SELECT COUNT(*) FROM `retail-analytics-494014.silver.online_retail_cleaned`").result().to_dataframe().iloc[0,0]
+    bronze_query = f"SELECT COUNT(*) FROM `{project_id}.{os.getenv('DATASET_BRONZE')}.{os.getenv('TABLE_RAW')}`"
+    silver_query = f"SELECT COUNT(*) FROM `{project_id}.{os.getenv('DATASET_SILVER')}.{os.getenv('TABLE_CLEANED')}`"
+        
+    bronze_count = client.query(bronze_query).result().to_dataframe().iloc[0,0]
+    silver_count = client.query(silver_query).result().to_dataframe().iloc[0,0]
+        
     dropped_rows = bronze_count - silver_count
-    drop_percentage = round((dropped_rows / bronze_count) * 100, 2)
-    logger.info(f"Data Quality Audit: Bronze ({bronze_count} rows) -> Silver ({silver_count} rows)")
-    logger.info(f"Dropped {dropped_rows} invalid rows ({drop_percentage}% of total).")
+    logger.info(f"Audit: Bronze ({bronze_count}) -> Silver ({silver_count}). Dropped: {dropped_rows}")
 
     logger.info("Starting gold layer transformation...")
     with open("sql/insights.sql", "r") as f:
-      sql_gold = f.read()
+      sql_gold = f.read().format(
+        PROJECT_ID = os.getenv("PROJECT_ID"),
+        DATASET_GOLD = os.getenv("DATASET_GOLD"),
+        TABLE_PERFORMANCE = os.getenv("TABLE_PERFORMANCE"),
+        DATASET_SILVER = os.getenv("DATASET_SILVER"),
+        TABLE_CLEANED = os.getenv("TABLE_CLEANED")
+      )
     client.query(sql_gold).result()
-    logger.info("Gold table created successfully.")
-    run_data_checks()
+       
+    run_data_checks() 
+    logger.info("Pipeline completed successfully.")
 
   except Exception as e:
-    logger.error(f"Pipeline failed! Error details: {e}")
+    logger.error(f"Pipeline failed! Details: {e}")
   finally:
     logger.info("Process finished.")
-
 
 if __name__ == "__main__":
   ingest_data()
