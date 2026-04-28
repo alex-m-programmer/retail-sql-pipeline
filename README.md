@@ -2,8 +2,8 @@
 
 A production-ready data pipeline that ingests ~540K retail transactions, cleanses dirty data at scale, and delivers actionable revenue insights — all running in Docker with zero manual intervention.
 
-![Dashboard Preview](assets/PowerBI%20(1).PNG)
-![Dashboard Preview](assets/PowerBI%20(2).PNG)
+![Dashboard Preview](assets/PowerBI%20(1).png)
+![Dashboard Preview](assets/PowerBI%20(2).png)
 
 ---
 
