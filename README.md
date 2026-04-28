@@ -2,8 +2,8 @@
 
 A production-ready data pipeline that ingests ~540K retail transactions, cleanses dirty data at scale, and delivers actionable revenue insights — all running in Docker with zero manual intervention.
 
-![Dashboard Preview](assets/PowerBI%20(1).PNG)
-![Dashboard Preview](assets/PowerBI%20(2).PNG)
+![Dashboard Preview](assets/PowerBI%20(2).png)
+![Dashboard Preview](assets/PowerBI%20(1).png)
 
 ---
 
@@ -130,7 +130,7 @@ The project uses the **Online Retail Dataset** from the UCI Machine Learning Rep
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/retail-sql-pipeline.git
+git clone https://github.com/alex-m-programmer/retail-sql-pipeline.git
 cd retail-sql-pipeline
 ```
 
