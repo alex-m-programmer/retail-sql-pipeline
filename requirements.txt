@@ -1,3 +1,4 @@
 pandas
 pandas-gbq
+python-dotenv
 google-cloud-bigquery
