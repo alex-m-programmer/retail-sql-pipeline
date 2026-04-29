@@ -140,6 +140,7 @@ Create a `.env` file in the root directory:
 
 ```bash
 # .env
+GOOGLE_APPLICATION_CREDENTIALS = "service_account.json"
 PROJECT_ID=your-gcp-project-id
 DATASET_BRONZE=bronze
 DATASET_SILVER=silver
